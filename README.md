@@ -8,8 +8,10 @@
 ## Overview
 setting up the server of the movie app and create the basic structures
 ## Getting Started
-<!-- What are the steps that a user must take in order to build this app on their own machine and get it running? -->
-
+Create a package.json file by typing this command in your terminal (npm init -y).
+install all the dependencies by typing (npm install).
+install express by typing the command (npm install express)
+once your done with the installation, just type node server to initialize the server
 ## Project Features
 movie app that can check the latest movies based on categories.
 
