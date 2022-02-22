@@ -1,11 +1,12 @@
 "use strict";
 
 const express = require("express");
-const jsonData  = require("./MovieData/data.json");
+const moviesData  = require("./MovieData/data.json");
 const app = express();
 const { response } = require("express");
 app.use(express.json());
 const axios = require("axios");
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const favoriteHandler = (req, res) => {
@@ -13,23 +14,29 @@ const favoriteHandler = (req, res) => {
 };
 app.get("/favorite", favoriteHandler);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
 function Movie(title, posterPath, overview) {
   this.title = title;
   this.posterPath = posterPath;
   this.overview = overview;
 }
 const formattedData = new Movie(
-  jsonData.title,
-  jsonData.poster_path,
-  jsonData.overview
+    moviesData.title,
+    moviesData.poster_path,
+    moviesData.overview
 );
-app.get('/', formattedDatar);
 
 function formattedDatar(req, res){
    
     return res.status(200).json(formattedData);
 
 };
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 function APIMovie(id, title, releaseDate, posterPath, overview) {
   this.id = id;
@@ -122,4 +129,12 @@ app.use("*", notFoundHandler);
 app.listen(3000, () => {
   console.log("Listen on 3000");
 });
+
+
+
+app.get('/', formattedDatar);
+
+
+
+
 
