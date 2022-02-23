@@ -1,27 +1,47 @@
-ss
+
+"use strict";
+
+const express = require("express");
+const moviesData  = require("./MovieData/data.json");
+const app = express();
+const { response } = require("express");
+app.use(express.json());
+const axios = require("axios");
+
+const dotenv=require("dotenv");
+const pg = require("pg");
+const DATABASE_URL = process.env.DATABASE_URL;
+dotenv.config();
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const favoriteHandler = (req, res) => {
   res.status(200).send("Welcome to Favorite Page");
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
 function Movie(title, posterPath, overview) {
   this.title = title;
   this.posterPath = posterPath;
   this.overview = overview;
 }
 const formattedData = new Movie(
-  jsonData.title,
-  jsonData.poster_path,
-  jsonData.overview
+    moviesData.title,
+    moviesData.poster_path,
+    moviesData.overview
 );
-
 
 function formattedDatar(req, res){
    
     return res.status(200).json(formattedData);
 
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function APIMovie(id, title, releaseDate, posterPath, overview) {
   this.id = id;
   this.title = title;
@@ -102,6 +122,43 @@ function searchHandler(req, res){
   };
   
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+//task13
+const addMovieHandler = (req, res) => {
+  const movie = req.body;
+  console.log(movie);
+  const sql = `INSERT INTO fav(title, releaseDate, posterPath, overview, comment) VALUES($1, $2, $3, $4, $5)`;
+  const values = [
+    movie.title,
+    movie.release_date,
+    movie.poster_path,
+    movie.overview,
+    movie.comment,
+  ];
+  client
+    .query(sql, values)
+    .then((data) => {
+      return res.status(201).json(data.rows);
+    })
+    .catch((error) => errorHandler(error, req, res));
+};
+
+
+const getMovieHandler = (req, res) => {
+  const sql = `SELECT * FROM fav`;
+
+  client
+    .query(sql)
+    .then((data) => {
+      return res.status(200).json(data.rows);
+    })
+    .catch((error) => {
+      errorHandler(error, req, res);
+    });
+};
+
+app.post("/addMovie", addMovieHandler);
+app.get("/getMovie", getMovieHandler);
+//////////////////////////////////////////////////////////////////////////////////////
 const errorHandler = (error, req, res) => {
   const err = {
     status: 500,
@@ -116,4 +173,12 @@ const errorHandler = (error, req, res) => {
 app.listen(3007, () => {
   console.log("Listen on 3000");
 });
+
+
+
+app.get('/', formattedDatar);
+
+
+
+
 
