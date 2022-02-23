@@ -1,27 +1,28 @@
 {
   "name": "movies-library",
   "version": "1.0.0",
-  "description": "**Author Name**: Hanan Nathem Saadeh",
-  "main": "server.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Hanan-Nathem-Saadeh/Movies-Library.git"
+    "url": "git+https://github.com/JalalHasan-22/Movies-Library.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Hanan-Nathem-Saadeh/Movies-Library/issues"
+    "url": "https://github.com/JalalHasan-22/Movies-Library/issues"
   },
-  "homepage": "https://github.com/Hanan-Nathem-Saadeh/Movies-Library#readme",
+  "homepage": "https://github.com/JalalHasan-22/Movies-Library#readme",
   "dependencies": {
-    "axios": "^0.26.0",
-    "dotenv": "^16.0.0",
-    "express": "^4.17.3",
-    "pg": "^8.7.3"
+    "axios": "^0.25.0",
+    "cors": "^2.8.5",
+    "dotenv": "^15.0.0",
+    "express": "^4.17.2",
+    "nodemon": "^2.0.15",
+    "pg": "^8.7.1"
   }
 }
