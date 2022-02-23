@@ -39,7 +39,7 @@ function APIMovie(id, title, releaseDate, posterPath, overview) {
   this.poster_path = posterPath;
   this.overview = overview;
 }
-///////////////////////////////////////////////
+/////////////////////////////////////
 const APIKEY = process.env.APIKEY;
 app.get("/certification", certification);
 app.get("/search", searchHandler);
