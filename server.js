@@ -6,7 +6,8 @@ const app = express();
 const { response } = require("express");
 app.use(express.json());
 const axios = require("axios");
-
+const dotenv=require("dotenv");
+dotenv.config();
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const favoriteHandler = (req, res) => {
   res.status(200).send("Welcome to Favorite Page");
@@ -40,7 +41,12 @@ function APIMovie(id, title, releaseDate, posterPath, overview) {
 }
 ///////////////////////////////////////////////
 const APIKEY = process.env.APIKEY;
-
+app.get("/certification", certification);
+app.get("/search", searchHandler);
+app.get("/trending", trendingHandler);
+app.get("/favorite", favoriteHandler);
+app.get('/', formattedDatar);
+////////////////////////////////////////////////
 function trendingHandler(req, res){
   const query = req.query.trendingHandler
   axios
@@ -61,49 +67,48 @@ function trendingHandler(req, res){
     .catch((error) => errorHandler(error, req, res));
 };
 
-
-
-app.get("/trending", trendingHandler);
-
-
-
-function companies(req, res){
-  const query1 = req.query1.companies
-  axios
-  .get(`https://api.themoviedb.org/3/movie/changes?api_key=${APIKEY}`)
-  .then(companies=>{
-    return res.status(200).json(companies.data.results);
-  })
-       .catch((error) => errorHandler(error, req, res));
-   };
-   app.get("/companies", companies);
-
-
-
+///////////////////////////////////////////////////////////////
    function certification(req, res){
-    const query2 = req.query2.certification
+    const query = req.query.certification
     axios
     .get(`https://api.themoviedb.org/3/certification/movie/list?api_key=${APIKEY}`)
-    .then(certification=>{
-      return res.status(200).json(certification.data.results);
+    .then(response=>{
+      return res.status(200).json(response.data.results);
     })
          .catch((error) => errorHandler(error, req, res));
      };
-     app.get("/certification", certification);
-
-
-function serchr(req, res){
-  const query = req.query.search
+     ////////////////////////////////////////////////////////////////
+function searchHandler(req, res){
+  const query = req.query.searchHandler;
   axios
-  .get(`https://api.themoviedb.org/3/search/movie?api_key=${APIKEY}&language=en-US&query=${APIKEY}&query=${search}`)
-  .then(serchr=>{
-    return res.status(200).json(serchr.data.results);
+  .get(`https://api.themoviedb.org/3/search/movie?api_key=${APIKEY}&query=${query}&page=2`)
+  .then(response=>{
+    return res.status(200).json(response.data.results);
   })
        .catch((error) => errorHandler(error, req, res));
    };
-   app.get("/search", serchr);
 
-
+   function topRatedHandler (req, res) {
+    const query = req.query.topRatedHandler
+    axios
+      .get(
+        `https://api.themoviedb.org/3/movie/top_rated?api_key=${APIKEY}&page=1`
+      )
+      .then((response) => {
+        return res.status(200).json(
+          response.data.results.map((mov) => {
+            return new APIMovie(
+              mov.id,
+              mov.title,
+              mov.release_date,
+              mov.poster_path,
+              mov.overview
+            );
+          })
+        );
+      })
+      .catch((error) => errorHandler(error, req, res));
+  };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const errorHandler = (error, req, res) => {
   const err = {
@@ -119,7 +124,7 @@ function notFoundHandler(req, res){
 app.use("*", notFoundHandler);
 
 //The pice of code which make my server work.
-app.listen(3000, () => {
+app.listen(3007, () => {
   console.log("Listen on 3000");
 });
 
