@@ -1,18 +1,8 @@
-"use strict";
-
-const express = require("express");
-const jsonData  = require("./MovieData/data.json");
-const app = express();
-const { response } = require("express");
-app.use(express.json());
-const axios = require("axios");
-const dotenv=require("dotenv");
-dotenv.config();
+ss
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const favoriteHandler = (req, res) => {
   res.status(200).send("Welcome to Favorite Page");
 };
-app.get("/favorite", favoriteHandler);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 function Movie(title, posterPath, overview) {
   this.title = title;
@@ -24,7 +14,7 @@ const formattedData = new Movie(
   jsonData.poster_path,
   jsonData.overview
 );
-app.get('/', formattedDatar);
+
 
 function formattedDatar(req, res){
    
@@ -42,6 +32,7 @@ function APIMovie(id, title, releaseDate, posterPath, overview) {
 /////////////////////////////////////
 const APIKEY = process.env.APIKEY;
 app.get("/certification", certification);
+app.get("/favorite", favoriteHandler);
 app.get("/search", searchHandler);
 app.get("/trending", trendingHandler);
 app.get("/favorite", favoriteHandler);
@@ -109,6 +100,7 @@ function searchHandler(req, res){
       })
       .catch((error) => errorHandler(error, req, res));
   };
+  
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const errorHandler = (error, req, res) => {
   const err = {
@@ -118,10 +110,7 @@ const errorHandler = (error, req, res) => {
   res.status(500).send(err);
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-function notFoundHandler(req, res){
-  return res.status(404).send("Not Found");
-}
-app.use("*", notFoundHandler);
+
 
 //The pice of code which make my server work.
 app.listen(3007, () => {
