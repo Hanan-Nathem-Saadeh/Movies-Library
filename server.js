@@ -1,33 +1,51 @@
 "use strict";
 
 const express = require("express");
-const jsonData  = require("./MovieData/data.json");
+const moviesData  = require("./MovieData/data.json");
 const app = express();
 const { response } = require("express");
 app.use(express.json());
 const axios = require("axios");
-const dotenv=require("dotenv");
-dotenv.config();
 
+const dotenv=require("dotenv");
+const pg = require("pg");
+const DATABASE_URL = process.env.DATABASE_URL;
+dotenv.config();
+const DATABASE_URL = process.env.DATABASE_URL;
+const client = new pg.Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+const PORT = process.env.PORT || 3001;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const favoriteHandler = (req, res) => {
   res.status(200).send("Welcome to Favorite Page");
 };
+app.get("/favorite", favoriteHandler);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
 function Movie(title, posterPath, overview) {
   this.title = title;
   this.posterPath = posterPath;
   this.overview = overview;
 }
 const formattedData = new Movie(
-  jsonData.title,
-  jsonData.poster_path,
-  jsonData.overview
+    moviesData.title,
+    moviesData.poster_path,
+    moviesData.overview
 );
-function formattedDatar(req, res){   
+
+function formattedDatar(req, res){
+   
     return res.status(200).json(formattedData);
+
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function APIMovie(id, title, releaseDate, posterPath, overview) {
   this.id = id;
   this.title = title;
@@ -37,21 +55,22 @@ function APIMovie(id, title, releaseDate, posterPath, overview) {
 }
 /////////////////////////////////////
 const APIKEY = process.env.APIKEY;
-// app.get("/accountHandler", accountHandler);
- app.get("/search", searchHandler);
+app.get("/certification", certification);
+app.get("/search", searchHandler);
 app.get("/trending", trendingHandler);
 app.get("/favorite", favoriteHandler);
 app.get('/', formattedDatar);
+
 app.get("/top_rated",topRatedHandler);
 app.get("/popular",popularHandler)
-/////////////////////////////////////////////////
-function trendingHandler(req, res){
-    axios
-  .get(`https://api.themoviedb.org/3/trending/all/week?api_key=${APIKEY}`)
-  .then((result) => {
-    return res.status(200).json(
-      result.data.results.map((movie) => {
 
+function trendingHandler(req, res){
+  const query = req.query.trendingHandler
+  axios
+  .get(`https://api.themoviedb.org/3/trending/all/week?api_key=${APIKEY}`)
+      .then((response) => {
+      return res.status(200).json(
+        response.data.results.map((movie) => {
           return new APIMovie(
             movie.id,
             movie.title,
@@ -64,62 +83,172 @@ function trendingHandler(req, res){
     })
     .catch((error) => errorHandler(error, req, res));
 };
-// ///////////////////////////////////////////////////////////////
-function popularHandler (req, res) {
-  let results = [];
-  axios
-  .get(`https://api.themoviedb.org/3/movie/popular?api_key=${APIKEY}&language=en-US&page=1`)
-  .then(response=>{
-    response.data.results.map(value => {
-      let popularMovie = new APIMovie(value.id || "N/A", value.title || "N/A", value.release_date || "N/A", value.poster_path || "N/A")
-      results.push(popularMovie);
-  });
-  return res.status(200).json(results);
+
+///////////////////////////////////////////////////////////////
+   function certification(req, res){
+    const query = req.query.certification
+    axios
+    .get(`https://api.themoviedb.org/3/certification/movie/list?api_key=${APIKEY}`)
+    .then(response=>{
+      return res.status(200).json(response.data.results);
     })
-    .catch((error) => errorHandler(error, req, res));
-};
-////////////////////////////////////////////////////////////////
+         .catch((error) => errorHandler(error, req, res));
+     };
+     ////////////////////////////////////////////////////////////////
 function searchHandler(req, res){
-  const query = req.query.search;
-  // const page=req.query.page;
-  let results = [];
+  const query = req.query.searchHandler;
   axios
-  .get(`https://api.themoviedb.org/3/search/movie?api_key=${APIKEY}&language=en-US&query=${query} `)
+  .get(`https://api.themoviedb.org/3/search/movie?api_key=${APIKEY}&query=${query}&page=2`)
   .then(response=>{
-    response.data.results.map(value => {
-      let oneMovie = new APIMovie(value.id || "N/A", value.title || "N/A", value.release_date || "N/A", value.poster_path || "N/A", value.overview || "N/A")
-      results.push(oneMovie);
-  });
-  return res.status(200).json(results);
+    return res.status(200).json(response.data.results);
   })
        .catch((error) => errorHandler(error, req, res));
    };
 
-
-//////////////////////////////////////////////////////////////////////////////////
-   function topRatedHandler (req, res){
-    const page=req.query.page;
-
+   function topRatedHandler (req, res) {
+    const query = req.query.topRatedHandler
     axios
       .get(
-        `https://api.themoviedb.org/3/movie/top_rated?api_key=${APIKEY}&language=en-US&&page=${page}`
+        `https://api.themoviedb.org/3/movie/top_rated?api_key=${APIKEY}&page=1`
       )
       .then((response) => {
         return res.status(200).json(
-          response.data.results.map((movie) => {
+          response.data.results.map((mov) => {
             return new APIMovie(
-              movie.id,
-              movie.title,
-              movie.release_date,
-              movie.poster_path,
-              movie.overview
+              mov.id,
+              mov.title,
+              mov.release_date,
+              mov.poster_path,
+              mov.overview
             );
           })
         );
       })
       .catch((error) => errorHandler(error, req, res));
   };
+///TASK13
+
+const addMovieHandler = (req, res) => {
+  const movie = req.body;
+  console.log(movie);
+  const sql = `INSERT INTO fav(title, releaseDate, posterPath, overview, comment) VALUES($1, $2, $3, $4, $5)`;
+  const values = [
+    movie.title,
+    movie.release_date,
+    movie.poster_path,
+    movie.overview,
+    movie.comment,
+  ];
+  client
+    .query(sql, values)
+    .then((data) => {
+      return res.status(201).json(data.rows);
+    })
+    .catch((error) => errorHandler(error, req, res));
+};
+
+const getMovieHandler = (req, res) => {
+  const sql = `SELECT * FROM fav`;
+
+  client
+    .query(sql)
+    .then((data) => {
+      return res.status(200).json(data.rows);
+    })
+    .catch((error) => {
+      errorHandler(error, req, res);
+    });
+};
+
+app.post("/addMovie", addMovieHandler);
+
+app.get("/getMovie", getMovieHandler);
+
+//TASK14
+const udpateFavHandler = (req, res) => {
+  const id = req.params.id;
+  const movie = req.body;
+  const values = [
+    movie.title,
+    movie.release_date,
+    movie.poster_path,
+    movie.overview,
+    movie.comment,
+  ];
+  const sql = `UPDATE fav
+    SET title=$1, releaseDate=$2, posterPath=$3, overview=$4, comment=$5
+    WHERE id=${id} RETURNING *;`;
+
+  client
+    .query(sql, values)
+    .then((data) => res.status(200).json(data.rows))
+    .catch((error) => errorHandler(error, req, res));
+};
+
+const deleteMovieHandler = (req, res) => {
+  const id = req.params.id;
+  const sql = `DELETE FROM fav WHERE id=${id};`;
+
+  client
+    .query(sql)
+    .then(() => res.status(203).json())
+    .catch((error) => errorHandler(error, req, res));
+};
+
+const getFavMovieHandler = (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT * FROM fav WHERE id=${id}`;
+
+  client
+    .query(sql)
+    .then((data) => res.status(200).json(data.rows))
+    .catch((error) => errorHandler(error, req, res));
+};
+
+app.put("/udpateFavMovie/:id", udpateFavHandler);
+
+app.delete("/delete/:id", deleteMovieHandler);
+
+app.get("/getFavMovie/:id", getFavMovieHandler);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+//task13
+const addMovieHandler = (req, res) => {
+  const movie = req.body;
+  console.log(movie);
+  const sql = `INSERT INTO fav(title, releaseDate, posterPath, overview, comment) VALUES($1, $2, $3, $4, $5)`;
+  const values = [
+    movie.title,
+    movie.release_date,
+    movie.poster_path,
+    movie.overview,
+    movie.comment,
+  ];
+  client
+    .query(sql, values)
+    .then((data) => {
+      return res.status(201).json(data.rows);
+    })
+    .catch((error) => errorHandler(error, req, res));
+};
+
+
+const getMovieHandler = (req, res) => {
+  const sql = `SELECT * FROM fav`;
+
+  client
+    .query(sql)
+    .then((data) => {
+      return res.status(200).json(data.rows);
+    })
+    .catch((error) => {
+      errorHandler(error, req, res);
+    });
+};
+
+app.post("/addMovie", addMovieHandler);
+app.get("/getMovie", getMovieHandler);
+//////////////////////////////////////////////////////////////////////////////////////
 const errorHandler = (error, req, res) => {
   const err = {
     status: 500,
@@ -134,6 +263,10 @@ function notFoundHandler(req, res){
 app.use("*", notFoundHandler);
 
 //The pice of code which make my server work.
-app.listen(10000, () => {
-  console.log("Listen on 3000");
+
+client.connect().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+  });
 });
+
