@@ -8,7 +8,12 @@ app.use(express.json());
 const axios = require("axios");
 const dotenv=require("dotenv");
 dotenv.config();
-
+const DATABASE_URL = process.env.DATABASE_URL;
+const client = new pg.Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+const PORT = process.env.PORT || 3001;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const favoriteHandler = (req, res) => {
   res.status(200).send("Welcome to Favorite Page");
@@ -119,6 +124,91 @@ function searchHandler(req, res){
       })
       .catch((error) => errorHandler(error, req, res));
   };
+///TASK13
+
+const addMovieHandler = (req, res) => {
+  const movie = req.body;
+  console.log(movie);
+  const sql = `INSERT INTO fav(title, releaseDate, posterPath, overview, comment) VALUES($1, $2, $3, $4, $5)`;
+  const values = [
+    movie.title,
+    movie.release_date,
+    movie.poster_path,
+    movie.overview,
+    movie.comment,
+  ];
+  client
+    .query(sql, values)
+    .then((data) => {
+      return res.status(201).json(data.rows);
+    })
+    .catch((error) => errorHandler(error, req, res));
+};
+
+const getMovieHandler = (req, res) => {
+  const sql = `SELECT * FROM fav`;
+
+  client
+    .query(sql)
+    .then((data) => {
+      return res.status(200).json(data.rows);
+    })
+    .catch((error) => {
+      errorHandler(error, req, res);
+    });
+};
+
+app.post("/addMovie", addMovieHandler);
+
+app.get("/getMovie", getMovieHandler);
+
+//TASK14
+const udpateFavHandler = (req, res) => {
+  const id = req.params.id;
+  const movie = req.body;
+  const values = [
+    movie.title,
+    movie.release_date,
+    movie.poster_path,
+    movie.overview,
+    movie.comment,
+  ];
+  const sql = `UPDATE fav
+    SET title=$1, releaseDate=$2, posterPath=$3, overview=$4, comment=$5
+    WHERE id=${id} RETURNING *;`;
+
+  client
+    .query(sql, values)
+    .then((data) => res.status(200).json(data.rows))
+    .catch((error) => errorHandler(error, req, res));
+};
+
+const deleteMovieHandler = (req, res) => {
+  const id = req.params.id;
+  const sql = `DELETE FROM fav WHERE id=${id};`;
+
+  client
+    .query(sql)
+    .then(() => res.status(203).json())
+    .catch((error) => errorHandler(error, req, res));
+};
+
+const getFavMovieHandler = (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT * FROM fav WHERE id=${id}`;
+
+  client
+    .query(sql)
+    .then((data) => res.status(200).json(data.rows))
+    .catch((error) => errorHandler(error, req, res));
+};
+
+app.put("/udpateFavMovie/:id", udpateFavHandler);
+
+app.delete("/delete/:id", deleteMovieHandler);
+
+app.get("/getFavMovie/:id", getFavMovieHandler);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 const errorHandler = (error, req, res) => {
   const err = {
@@ -134,6 +224,8 @@ function notFoundHandler(req, res){
 app.use("*", notFoundHandler);
 
 //The pice of code which make my server work.
-app.listen(10000, () => {
-  console.log("Listen on 3000");
+client.connect().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+  });
 });
