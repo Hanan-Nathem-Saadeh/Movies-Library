@@ -60,7 +60,10 @@ app.get("/search", searchHandler);
 app.get("/trending", trendingHandler);
 app.get("/favorite", favoriteHandler);
 app.get('/', formattedDatar);
-////////////////////////////////////////////////
+
+app.get("/top_rated",topRatedHandler);
+app.get("/popular",popularHandler)
+
 function trendingHandler(req, res){
   const query = req.query.trendingHandler
   axios
