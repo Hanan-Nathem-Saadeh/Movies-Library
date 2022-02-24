@@ -44,7 +44,7 @@ app.get("/favorite", favoriteHandler);
 app.get('/', formattedDatar);
 app.get("/top_rated",topRatedHandler);
 app.get("/popular",popularHandler)
-////////////////////////////////////////////////
+/////////////////////////////////////////////////
 function trendingHandler(req, res){
     axios
   .get(`https://api.themoviedb.org/3/trending/all/week?api_key=${APIKEY}`)
