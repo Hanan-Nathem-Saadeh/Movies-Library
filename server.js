@@ -47,7 +47,6 @@ const formattedData = new Movie(
   jsonData.overview
 );
 
-
 function formattedDatar(req, res){   
     return res.status(200).json(formattedData);
 };
@@ -104,7 +103,6 @@ function searchHandler(req, res){
   })
        .catch((error) => errorHandler(error, req, res));
    };
-
 
 // //////////////////////////////////////////////////////////////////////////////////
    function topRatedHandler (req, res){
@@ -163,7 +161,6 @@ function getMovieHandler  (req, res)  {
 };
 
 
-
 //TASK14
 function udpateFavHandler  (req, res) {
   const id = req.params.id;
@@ -204,7 +201,6 @@ function getFavMovieHandler  (req, res) {
     .then((data) => res.status(200).json(data.rows))
     .catch((error) => errorHandler(error, req, res));
 };
-
 
 
 // //////////////////////////////////////////////////////////////////////////////////////////////////////////
