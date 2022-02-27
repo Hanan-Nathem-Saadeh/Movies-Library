@@ -3,36 +3,36 @@
 const express = require("express");
 const jsonData  = require("./MovieData/data.json");
 const app = express();
-const { response } = require("express");
-app.use(express.json());
 const axios = require("axios");
 const dotenv=require("dotenv");
+const pg =require("pg");
 dotenv.config();
 const DATABASE_URL = process.env.DATABASE_URL;
-const client = new pg.Client({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+const client = new pg.Client(DATABASE_URL);
 const PORT = process.env.PORT || 3001;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-const favoriteHandler = (req, res) => {
-  res.status(200).send("Welcome to Favorite Page");
-};
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
+const APIKEY = process.env.APIKEY;
+app.use(express.json());
+
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+app.get("/search", searchHandler);
+app.get("/trending", trendingHandler);
+app.get("/favorite", favoriteHandler);
+app.get('/', formattedDatar);
+app.get("/top_rated",topRatedHandler);
+app.get("/popular",popularHandler);
+app.post("/addFavMovie", addFavMovieHandler);
+app.get("/getMovie", getMovieHandler);
+app.put("/udpateFavMovie/:id", udpateFavHandler);
+app.delete("/delete/:id", deleteMovieHandler);
+app.get("/getFavMovie/:id", getFavMovieHandler);
+
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////
 function Movie(title, posterPath, overview) {
   this.title = title;
   this.posterPath = posterPath;
   this.overview = overview;
 }
-const formattedData = new Movie(
-  jsonData.title,
-  jsonData.poster_path,
-  jsonData.overview
-);
-function formattedDatar(req, res){   
-    return res.status(200).json(formattedData);
-};
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 function APIMovie(id, title, releaseDate, posterPath, overview) {
   this.id = id;
   this.title = title;
@@ -40,16 +40,21 @@ function APIMovie(id, title, releaseDate, posterPath, overview) {
   this.poster_path = posterPath;
   this.overview = overview;
 }
-/////////////////////////////////////
-const APIKEY = process.env.APIKEY;
-// app.get("/accountHandler", accountHandler);
- app.get("/search", searchHandler);
-app.get("/trending", trendingHandler);
-app.get("/favorite", favoriteHandler);
-app.get('/', formattedDatar);
-app.get("/top_rated",topRatedHandler);
-app.get("/popular",popularHandler)
-////////////////////////////////////////////////
+
+const formattedData = new Movie(
+  jsonData.title,
+  jsonData.poster_path,
+  jsonData.overview
+);
+
+
+function formattedDatar(req, res){   
+    return res.status(200).json(formattedData);
+};
+function favoriteHandler  (req, res) {
+      res.status(200).send("Welcome to Favorite Page");
+    };
+
 function trendingHandler(req, res){
     axios
   .get(`https://api.themoviedb.org/3/trending/all/week?api_key=${APIKEY}`)
@@ -69,7 +74,7 @@ function trendingHandler(req, res){
     })
     .catch((error) => errorHandler(error, req, res));
 };
-// ///////////////////////////////////////////////////////////////
+// // ///////////////////////////////////////////////////////////////
 function popularHandler (req, res) {
   let results = [];
   axios
@@ -83,7 +88,7 @@ function popularHandler (req, res) {
     })
     .catch((error) => errorHandler(error, req, res));
 };
-////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
 function searchHandler(req, res){
   const query = req.query.search;
   // const page=req.query.page;
@@ -101,7 +106,7 @@ function searchHandler(req, res){
    };
 
 
-//////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////
    function topRatedHandler (req, res){
     const page=req.query.page;
 
@@ -124,12 +129,11 @@ function searchHandler(req, res){
       })
       .catch((error) => errorHandler(error, req, res));
   };
-///TASK13
+// ///TASK13
 
-const addMovieHandler = (req, res) => {
+function addFavMovieHandler  (req, res)  {
   const movie = req.body;
-  console.log(movie);
-  const sql = `INSERT INTO fav(title, releaseDate, posterPath, overview, comment) VALUES($1, $2, $3, $4, $5)`;
+  const sql = `INSERT INTO fav(title, release_date, poster_path, overview, comment) VALUES($1, $2, $3, $4, $5) RETURNING *`
   const values = [
     movie.title,
     movie.release_date,
@@ -145,7 +149,7 @@ const addMovieHandler = (req, res) => {
     .catch((error) => errorHandler(error, req, res));
 };
 
-const getMovieHandler = (req, res) => {
+function getMovieHandler  (req, res)  {
   const sql = `SELECT * FROM fav`;
 
   client
@@ -158,12 +162,10 @@ const getMovieHandler = (req, res) => {
     });
 };
 
-app.post("/addMovie", addMovieHandler);
 
-app.get("/getMovie", getMovieHandler);
 
 //TASK14
-const udpateFavHandler = (req, res) => {
+function udpateFavHandler  (req, res) {
   const id = req.params.id;
   const movie = req.body;
   const values = [
@@ -183,7 +185,7 @@ const udpateFavHandler = (req, res) => {
     .catch((error) => errorHandler(error, req, res));
 };
 
-const deleteMovieHandler = (req, res) => {
+function deleteMovieHandler  (req, res)  {
   const id = req.params.id;
   const sql = `DELETE FROM fav WHERE id=${id};`;
 
@@ -193,7 +195,7 @@ const deleteMovieHandler = (req, res) => {
     .catch((error) => errorHandler(error, req, res));
 };
 
-const getFavMovieHandler = (req, res) => {
+function getFavMovieHandler  (req, res) {
   const id = req.params.id;
   const sql = `SELECT * FROM fav WHERE id=${id}`;
 
@@ -203,14 +205,10 @@ const getFavMovieHandler = (req, res) => {
     .catch((error) => errorHandler(error, req, res));
 };
 
-app.put("/udpateFavMovie/:id", udpateFavHandler);
 
-app.delete("/delete/:id", deleteMovieHandler);
 
-app.get("/getFavMovie/:id", getFavMovieHandler);
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-const errorHandler = (error, req, res) => {
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////
+function errorHandler  (error, req, res)  {
   const err = {
     status: 500,
     message: error.message,
@@ -224,8 +222,9 @@ function notFoundHandler(req, res){
 app.use("*", notFoundHandler);
 
 //The pice of code which make my server work.
-client.connect().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}`);
-  });
+client.connect()
+.then(() => {
+    app.listen(PORT, () => {
+        console.log(`Listen on ${PORT}`);
+    });
 });
