@@ -8,11 +8,14 @@ const dotenv=require("dotenv");
 const pg =require("pg");
 dotenv.config();
 const DATABASE_URL = process.env.DATABASE_URL;
-const client = new pg.Client(DATABASE_URL);
+// const client = new pg.Client(DATABASE_URL);
 const PORT = process.env.PORT || 3001;
 const APIKEY = process.env.APIKEY;
 app.use(express.json());
-
+const client = new pg.Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 // ////////////////////////////////////////////////////////////////////////////////////////////////////
  
 app.get("/search", searchHandler);
